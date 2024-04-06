@@ -33,7 +33,7 @@ Once installed, you can add the sensor to your Home Assistant dashboard to monit
 As this is just a simple web scraper, and the DNV chooses to not make it easy to scrape their data, this plugin may break if they update their page layout.
 
 ## Contributing
-Feel free to fork the project, make imporvovements, and submit pull requests.
+Feel free to fork the project, make improvements, and submit pull requests.
 
 ## License
 Distributed under the MIT License. See 'LICENSE' for more information.
