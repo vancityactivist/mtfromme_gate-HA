@@ -32,7 +32,9 @@ def get_current_closing_time(closing_times):
                 end_date = datetime.datetime.strptime(f"{end_date.strftime('%B %d')} {now.year + 1}", '%B %d %Y')
 
         if start_date <= now <= end_date:
-            return time
+            # Convert time to 24-hour format
+            closing_time_24hr = datetime.datetime.strptime(time, '%I%p').strftime('%H:%M')
+            return closing_time_24hr
     return 'Closing time not found'
 
 def main():
