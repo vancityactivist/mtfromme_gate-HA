@@ -37,10 +37,26 @@ def get_current_closing_time(closing_times):
             return closing_time_24hr
     return 'Closing time not found'
 
+def calculate_time_until_closing(closing_time):
+    now = datetime.datetime.now()
+    closing_time_today = datetime.datetime.strptime(closing_time, '%H:%M')
+    closing_datetime = datetime.datetime(now.year, now.month, now.day,
+                                         closing_time_today.hour, closing_time_today.minute)
+    if now > closing_datetime:
+        closing_datetime += datetime.timedelta(days=1)  # Move to the next day if past closing
+    remaining_time = closing_datetime - now
+    hours, remainder = divmod(remaining_time.seconds, 3600)
+    minutes = remainder // 60
+    return f"{hours} hours and {minutes} minutes until closing"
+
 def main():
     closing_times = fetch_gate_closing_times()
     current_closing_time = get_current_closing_time(closing_times)
-    print(current_closing_time)
+    if current_closing_time != 'Closing time not found':
+        countdown = calculate_time_until_closing(current_closing_time)
+        print(countdown)
+    else:
+        print(current_closing_time)
 
 if __name__ == '__main__':
     main()
