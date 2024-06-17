@@ -30,10 +30,10 @@ Once installed, you can add the sensor to your Home Assistant dashboard to monit
 - **Automatic Updates**: The sensor fetches and updates the gate closing times for Mt Fromme from the official website once per day.
 - **Home Assistant Integration**: Seamlessly integrates into Home Assistant as a command-line sensor, displaying the current gate closing time.
 - **Easy Configuration**: Simple setup with a single entry in the `configuration.yaml` file of Home Assistant.
+- **UPDATE April 9**: Modified script to return a proper 24-hr time, so you can use it to build custom countdowns, or any other use (like an Apple Watch Complication - coming soon).
 
 ## Risks
 As this is just a simple web scraper, and the DNV chooses to not make it easy to scrape their data, this plugin may break if they update their page layout.
- - **UPDATE JUNE 2024**: Yup. They updated their page to be dynamically generated and I'm having trouble tricking the server into thinking the script is just a chrome browser. [GitHub Issue Link](https://github.com/vancityactivist/mtfromme_gate-HA/issues/2)
 
 ## Contributing
 Feel free to fork the project, make improvements, and submit pull requests.
