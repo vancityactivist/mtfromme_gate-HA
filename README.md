@@ -1,5 +1,7 @@
 # Mt Fromme Gate Closing Time Home Assistant Sensor
 
+**UPDATE JUNE 2024**: DNV updated their page to be dynamically generated and I'm having trouble tricking the server into thinking the script is just a chrome browser. [GitHub Issue Link](https://github.com/vancityactivist/mtfromme_gate-HA/issues/2)
+
 Integrate the Mt Fromme gate closing times into Home Assistant with this custom sensor.
 
 ## Installation
@@ -31,6 +33,7 @@ Once installed, you can add the sensor to your Home Assistant dashboard to monit
 
 ## Risks
 As this is just a simple web scraper, and the DNV chooses to not make it easy to scrape their data, this plugin may break if they update their page layout.
+ - **UPDATE JUNE 2024**: Yup. They updated their page to be dynamically generated and I'm having trouble tricking the server into thinking the script is just a chrome browser. [GitHub Issue Link](https://github.com/vancityactivist/mtfromme_gate-HA/issues/2)
 
 ## Contributing
 Feel free to fork the project, make improvements, and submit pull requests.
