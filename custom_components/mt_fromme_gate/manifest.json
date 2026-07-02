@@ -1,0 +1,12 @@
+{
+  "domain": "mt_fromme_gate",
+  "name": "Mt Fromme Gate",
+  "codeowners": ["@vancityactivist"],
+  "config_flow": true,
+  "documentation": "https://github.com/vancityactivist/mtfromme_gate-HA",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/vancityactivist/mtfromme_gate-HA/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}

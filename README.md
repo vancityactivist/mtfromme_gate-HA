@@ -1,34 +1,70 @@
-# Mt Fromme Gate Closing Time Home Assistant Sensor
+# Mt Fromme Gate — Home Assistant
 
-A Home Assistant `command_line` sensor that fetches the current parking lot
-closing time for Mt Fromme (District of North Vancouver) and exposes it as a
-24-hour time string (e.g. `21:00`), so you can use it for dashboards,
-notifications, or countdown automations.
+A Home Assistant integration and sensor for the current parking lot closing
+time at Mt Fromme (District of North Vancouver), so you can use it on
+dashboards, notifications, or countdown automations.
 
-**UPDATE JULY 2026**: Fixed. DNV rebuilt their site as a client-rendered React
-app (SimpliCity CMS), so scraping the rendered HTML no longer worked. The
-script now calls the CMS's underlying JSON API directly
+**UPDATE JULY 2026**: Fixed, and rebuilt as a proper HACS custom integration.
+DNV rebuilt their site as a client-rendered React app (SimpliCity CMS), so
+scraping the rendered HTML no longer worked. The integration now calls the
+CMS's underlying JSON API directly
 (`simplicity-api.dnv.org/public/webpage/path/detailed/...`) instead of
 scraping HTML. [GitHub Issue Link](https://github.com/vancityactivist/mtfromme_gate-HA/issues/2)
 
+There are two ways to use this repo:
+
+- **[HACS custom integration](#installation-hacs-recommended)** (recommended) —
+  install through HACS, configure via the UI, no scripts or YAML editing, no
+  Python dependencies to manage inside the container.
+- **[Legacy `command_line` script](#legacy-installation-command_line-script)** —
+  the original standalone `fromme.py`, for anyone who'd rather not add a
+  custom integration.
+
 ## How it works
 
-`fromme.py` requests DNV's page-content API for the
-["Hiking and cycling trails in parks"](https://www.dnv.org/parks-trails-recreation/hiking-and-cycling-trails-parks)
-page, finds the "Parking at Fromme Mountain" table in the returned JSON, and
-matches today's date against the listed date ranges to print the closing time
-in 24-hour format (e.g. `18:00`).
+Both the integration and the standalone script request DNV's page-content API
+for the ["Hiking and cycling trails in parks"](https://www.dnv.org/parks-trails-recreation/hiking-and-cycling-trails-parks)
+page, find the "Parking at Fromme Mountain" table in the returned JSON, and
+resolve today's (and tomorrow's) applicable closing time from the listed date
+ranges — correctly handling ranges that wrap around New Year's (e.g.
+October–February).
 
-## Requirements
+## Installation (HACS, recommended)
 
-- Home Assistant (any install method)
-- Python 3 with the `requests` package available to whatever runs the script
+1. **Add this repository to HACS** as a custom repository:
+   - HACS → the `⋮` menu (top right) → **Custom repositories**
+   - Repository: `https://github.com/vancityactivist/mtfromme_gate-HA`
+   - Category: **Integration**
+   - Click **Add**
 
-## Installation (Home Assistant in Docker on unRAID)
+2. **Install the integration.**
+   Find "Mt Fromme Gate" in HACS → Integrations, click **Download**, then
+   restart Home Assistant (Settings → System → Restart, or restart the
+   container: `docker restart homeassistant` on unRAID).
 
-These steps assume you're running the official Home Assistant container
-(e.g. via unRAID's Community Applications) with its config directory mapped
-to a host path such as `/mnt/user/appdata/homeassistant`.
+3. **Add the integration via the UI.**
+   Settings → Devices & Services → **Add Integration** → search for
+   "Mt Fromme Gate" → follow the prompt. No configuration is required — it
+   just creates the entity.
+
+4. **Verify it worked.**
+   You'll get a `sensor.mt_fromme_gate_closing_time` entity with:
+   - **State**: a timestamp — the *next* upcoming gate closing (today's if
+     it hasn't passed yet, otherwise tomorrow's), so Lovelace can render it
+     as "in 3 hours" and automations can trigger relative to it.
+   - **Attribute `today_closing_time`**: today's closing time as `HH:MM`.
+   - **Attribute `schedule`**: the full date-range → closing-time table, as
+     fetched from DNV.
+
+   If the entity doesn't appear or shows unavailable, check Settings →
+   System → Logs for `mt_fromme_gate` errors.
+
+## Legacy installation (`command_line` script)
+
+If you'd rather not add a custom integration, `fromme.py` is a standalone
+script you can run via a `command_line` sensor. These steps assume Home
+Assistant is running in Docker on unRAID with its config directory mapped to
+a host path such as `/mnt/user/appdata/homeassistant`.
 
 1. **Find your HA config share.**
    In the unRAID UI, go to the Home Assistant container's settings and note
@@ -43,7 +79,6 @@ to a host path such as `/mnt/user/appdata/homeassistant`.
    cd /mnt/user/appdata/homeassistant/scripts
    curl -O https://raw.githubusercontent.com/vancityactivist/mtfromme_gate-HA/main/fromme.py
    ```
-   (Or clone the repo and copy `fromme.py` into that folder.)
 
 3. **Verify `requests` is available inside the container.**
    The official Home Assistant image already ships `requests` (HA core
@@ -51,12 +86,11 @@ to a host path such as `/mnt/user/appdata/homeassistant`.
    ```bash
    docker exec -it homeassistant python3 -c "import requests; print('ok')"
    ```
-   If that fails, install it inside the container's Python environment, e.g.:
+   If that fails, install it inside the container's Python environment:
    ```bash
    docker exec -it homeassistant pip3 install requests
    ```
-   Note this won't survive a container recreation/update — if you hit this,
-   consider a startup script or a custom Dockerfile layer instead.
+   Note this won't survive a container recreation/update.
 
 4. **Add the sensor to `configuration.yaml`.**
    Edit `/mnt/user/appdata/homeassistant/configuration.yaml` (same folder as
@@ -71,55 +105,41 @@ to a host path such as `/mnt/user/appdata/homeassistant`.
    Note the path is `/config/scripts/fromme.py` — that's the path *inside the
    container*, which is where `/mnt/user/appdata/homeassistant` is mounted.
 
-5. **Restart the Home Assistant container** (Docker tab in unRAID, or
-   `docker restart homeassistant`) to apply the change.
+5. **Restart the Home Assistant container** to apply the change.
 
 6. **Verify it worked.**
-   In Home Assistant, go to **Developer Tools → States** and search for
-   `sensor.mt_fromme_gate_closing_time`. Its state should be a time like
-   `21:00`. If it instead shows `unknown` or an error, see
-   [Troubleshooting](#troubleshooting) below.
+   Developer Tools → States → `sensor.mt_fromme_gate_closing_time` should
+   show a time like `21:00`.
 
-## Post-Installation
+### Legacy script troubleshooting
 
-Once installed, add the sensor to your Home Assistant dashboard to monitor
-the Mt Fromme gate closing time from your home screen, or reference
-`sensor.mt_fromme_gate_closing_time` in automations (e.g. a notification an
-hour before closing).
-
-![Sensor Card](https://images2.imgbox.com/29/a7/Fi85HIVc_o.png)
-
-![Example](https://images2.imgbox.com/ad/09/DVDFeLtb_o.png)
-
-## Troubleshooting
-
-- **Run it manually first.** From the unRAID host:
+- **Run it manually first.**
   ```bash
   docker exec -it homeassistant python3 /config/scripts/fromme.py
   ```
-  This should print a time like `18:00`. Any traceback will point at the
-  real problem (missing `requests`, network/DNS issue, or the DNV API
-  shape has changed again).
+  This should print a time like `18:00`. Any traceback points at the real
+  problem (missing `requests`, network/DNS issue, or the DNV API shape has
+  changed again).
 - **`scan_interval: 86400`** means Home Assistant only refreshes this sensor
-  once a day — after editing the script, restart HA or call
-  `homeassistant.update_entity` on the sensor to force an immediate refresh.
+  once a day — restart HA or call `homeassistant.update_entity` on the
+  sensor to force an immediate refresh.
 - **Sensor stuck on `unknown`** usually means the command exited non-zero or
-  printed nothing — check the Home Assistant logs (Settings → System → Logs)
-  for `command_line` errors.
+  printed nothing — check Settings → System → Logs for `command_line` errors.
 
-## Features
+## Repository structure
 
-- **Automatic updates**: the sensor refetches DNV's data once per day.
-- **24-hour output**: returns a plain `HH:MM` string suitable for countdowns,
-  automations, or complications (e.g. an Apple Watch face).
-- **Handles year wrap-around**: date ranges spanning New Year's (e.g.
-  October–February) are resolved correctly regardless of the current month.
+```
+custom_components/mt_fromme_gate/   HACS-installable integration
+fromme.py                           Standalone script for the legacy method
+hacs.json                           HACS repository metadata
+```
 
 ## Risks
 
-This script calls an undocumented internal API used by the DNV website's CMS
-(SimpliCity), not an official public API. It may break at any time if DNV
-changes their CMS, API, or page structure, with no advance notice.
+Both the integration and the script call an undocumented internal API used
+by the DNV website's CMS (SimpliCity), not an official public API. This may
+break at any time if DNV changes their CMS, API, or page structure, with no
+advance notice.
 
 ## Contributing
 

@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Mt Fromme Gate",
+        "description": "This adds a sensor for the current Mt Fromme parking lot closing time, fetched daily from the District of North Vancouver's website. No configuration is needed."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Already configured. Only a single instance is allowed."
+    }
+  }
+}
